@@ -319,7 +319,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - **Course**: IOT102 (Internet of Things) - FPT University
 - **Class / Group**: SE2036 - Group 1 (Summer 2026)
 - **Members**:
+  - Hoang Duc Thinh (Leader)
   - Huynh Nhat ([@HNyat](https://github.com/HNyat))
-  - Tran Trong Long
-  - Ha Duc Thinh
-  - Doan Cong Bang
+  - Thai Thanh Long
+  - Dao Chi Bang
