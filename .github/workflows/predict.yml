@@ -1,0 +1,55 @@
+name: Automated Weather Predictor (Python ML)
+
+on:
+  schedule:
+    # Run every 15 minutes - synchronized with ThingSpeak update cycle
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    # Allows manual trigger from GitHub Actions UI for verification and testing
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+        cache-dependency-path: 'ml_engine/requirements.txt'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ml_engine/requirements.txt
+
+    - name: Train Machine Learning Model (Dynamic Learning)
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        # Execute model retraining to generate updated .joblib artifacts based on recent climate logs
+        python ml_engine/train.py
+
+    - name: Run Weather Prediction and Update ThingSpeak
+      env:
+        # Load environment variables from GitHub Repository Secrets
+        # If secrets are not defined, script uses fallback defaults configured in codebase
+        THINGSPEAK_CHANNEL_ID: ${{ secrets.THINGSPEAK_CHANNEL_ID }}
+        THINGSPEAK_READ_KEY: ${{ secrets.THINGSPEAK_READ_KEY }}
+        THINGSPEAK_WRITE_KEY: ${{ secrets.THINGSPEAK_WRITE_KEY }}
+      run: |
+        python ml_engine/predict_live.py
+
+    - name: Commit and Push Updated Models
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add models/*.joblib || true
+        git commit -m "chore(auto): update trained model artifacts [skip ci]" || true
+        git push origin main || true
